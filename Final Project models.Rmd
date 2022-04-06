@@ -1,0 +1,262 @@
+---
+title: "Final Project models"
+author: "Savannah Farney"
+date: "4/5/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(readr)
+library(tidyverse)
+library(ggplot2)
+library(base)
+#music<- read.csv("genres_v2.csv", header = TRUE)
+music<- read.csv("Documents/STAT 518/STAT 518/genres_v2.csv", header = TRUE) 
+
+#count unique values
+df<-sapply(lapply(music, unique), length)
+df
+#count nas
+as.data.frame(colSums(is.na(music)))
+as.data.frame(colSums(!is.na(music)))
+
+music<-music[,-c(22,21,20,16,15,14,13)]
+
+music<-na.omit(music)
+
+```
+
+## R Markdown
+
+#MODELING TIME
+
+
+
+##Model Selection
+
+```{r}
+library(leaps)
+#Best subset
+
+#forward selection
+
+#backward selection
+
+#others I have missed
+```
+
+##Logistical regression / multinomial regression
+(https://it.unt.edu/sites/default/files/mlr_jds_aug2011.pdf)
+```{r}
+set.seed(1234)
+#idx <- read.table('music.traintest')
+#get random numbers for idx.tr
+n<-nrow(music)
+n
+idx.tr <- sample(n, .7*n) #idx$V1 == 0
+music.tr <- music[idx.tr,]
+music.tst <- music[-idx.tr,]
+
+n<-nrow(music.tst)
+n
+idx.tr <- sample(n, (2/3)*n) #idx$V1 == 0
+music.tr <- music[idx.tr,]
+music.tst <- music[-idx.tr,]
+
+summary(music)
+ggplot(data=music, mapping = aes(x=genre)) +
+  geom_bar()
+
+summary(music.tr)
+ggplot(data=music.tr, mapping = aes(x=genre)) +
+  geom_bar()
+```
+
+```{r}
+#figure out how to do this for more than one category
+library(mlogit)
+mdata<- mlogit.data(music, varying = NULL, choice="genre", shape = "wide")
+model.1 <- mlogit(genre~., data = mdata, reflevel = "1")
+#do five times, look at largest
+
+
+#QDA looking
+fit <- glmnet(x, y, family = "multinomial", type.multinomial = "grouped") plot(fit, xvar = "lambda", label = TRUE, type.coef = "2norm")
+cvfit <- cv.glmnet(x, y, family = "multinomial", type.multinomial = "grouped") plot(cvfit)
+predict(cvfit, newx = x[1:10,], s = "lambda.min", type = "class")
+```
+
+```{r}
+#two categories only!!! Will not work!!!!
+lgr <- glm(genre~., data=music.tr, family = binomial)
+lgr.step <- step(lgr, trace=0)
+#summary(lgr)
+summary(lgr.step)
+
+prob5 <-predict(lgr, newdata=music.tst, type='response')
+est.55 <- ifelse(prob5>0.5, 1, 0)
+table(music.tst$genre, est.55, dnn=c('TRUE', 'Logistic'))
+
+prob <- predict(lgr.step, newdata=music.tst, type='response')
+est.5 <- ifelse(prob>0.5, 1, 0)
+table(music.tst$genre, est.5, dnn=c('TRUE', 'Logistic'))
+mean(music.tst$genre != est.5)
+```
+
+##Maximum likelihood
+  #Bayes theorem
+
+##LDA
+(https://multivariatestatsjl.readthedocs.io/en/latest/mclda.html)
+```{r}
+library(MASS)
+length(unique(as.factor(music.tr$genre)))
+music.tr$genre
+lda <- lda(genre~., data=music.tr)
+table(music.tst$genre, predict(lda, newdata=music.tst)$class, dnn=c("True", "LDA"))
+mean(music.tst$genre != predict(lda,  newdata=music.tst)$class)
+```
+
+##QDA
+(https://rpubs.com/aaronsc32/qda-several-groups)
+```{r}
+qda <- qda(genre~., data=music.tr)
+table(music.tst$genre, predict(qda, newdata=music.tst, type='response')$class, dnn=c("True", "QDA"))
+mean(music.tst$genre != predict(qda,  newdata=music.tst)$class)
+```
+
+##Nearest Neighbor
+```{r}
+library(class)
+#change 58 to column for genre
+music.tr2 <- music.tr %>%
+  select(-genre)
+music.tst2 <- music.tst %>%
+  select(-genre)
+
+music.tr$genre<-as.character(music.tr$genre)
+music.tr$genre<-as.factor(music.tr$genre)
+music.tr$genre<-as.numeric(music.tr$genre)
+
+typeof(music.tr$genre)
+typeof(music)
+knn.cls<-knn(train = music.tr[,-15], test = music.tst[,-15], music.tr[, 15], k=16)
+table(music.tst$genre, knn.cls)
+
+knn.cls1<-knn(train = music.tr2, test = music.tst2, cl=music.tr$genre, k=1)
+knn.cls5<-knn(train = music.tr2, test = music.tst2, cl=music.tr$genre, k=5)
+table(music.tst$genre, knn.cls, dnn=c("True", "KNN K=3"))
+table(music.tst$genre, knn.cls1, dnn=c("True", "KNN K=1"))
+table(music.tst$genre, knn.cls5, dnn=c("True", "KNN K=5"))
+```
+
+##Naive Bayes
+
+##Resampleing methods
+  #validation set approach
+  #leave-one-out Cross Validation
+  #k-fold Cross-Validation
+  #bootstrap
+
+#Decision trees
+##Classification Tree
+```{r}
+library(tree)
+#full tree
+trMusic <- tree(as.factor(genre)~., data=music, minsize = 1)
+tree:::print.tree(trMusic)
+plot(trMusic); text(trMusic, col='blue', pretty=TRUE, cex=.8)
+
+#how many nodes?
+cv.Movie <- cv.tree(trMusic)
+plot(cv.Movie)
+
+#prune tree
+pr.tr <- prune.tree(trMusic, best=11)
+plot(pr.tr); text(pr.tr, pretty=TRUE, col='red', cex=.8)
+tree:::print.tree(pr.tr)
+#look at doc to help get all of the genres
+
+pb <- predict(pr.tr, newdata = music.tst, type = 'class')
+table_mat <- table(music.tst$genre, pb)
+table_mat
+```
+
+##Random Forests
+Random Forest
+
+```{r}
+set.seed(2)
+library(randomForest)
+## Random Forest
+rf.music<- randomForest((genre)~., data=music.tr, mtry=4)
+
+importance(rf.spam)
+varImpPlot(rf.spam, cex = .65)
+
+ranforest <- predict(rf.music, newdata = music.tst, type = 'class')
+table_mat2 <- table(music.tst$genre, ranforest)
+table_mat2
+#find better way to print?
+```
+
+##Bagging
+Bagging
+```{r}
+set.seed(2)
+## Bagging 
+bag <- randomForest(as.factor(genre)~., data = spam.tr, mtry=14, importance = TRUE, proximity = TRUE)
+
+importance(bag)
+varImpPlot(bag, cex=.65)
+
+bagging <- predict(bag, newdata = music.tst, type = 'class')
+table_mat <- table(music.tst$genre, bagging)
+table_mat
+```
+
+#Out-Of-Bag Error?
+using the observations that were not used in the bagging to test how the tree is doing
+##Boosting
+Boosting
+```{r}
+library(gbm)
+set.seed(2)
+
+## Boosting for Classification
+music.tr$genre<-as.factor(music.tr$genre)
+boost <- boosting(genre~., data=music.tr, mfinal=20)
+summary.gbm(boost)
+boost$importance
+
+# Compare the Cross-Validation Error for different # of trees
+cv.err <- gbm(genre~., data=music.tr, distribution = 'gaussian', 
+              n.tree = 500, cv.folds = 5)$cv.error
+plot(cv.err, type='l', xlab="Number of trees", ylab="CV error")
+
+# Plot the classification tree
+tr1 <- boost$trees[[1]]
+plot(tr1); text(tr1, pretty=TRUE, col='red', cex=.8)
+
+boostmodel1 <- predict.boosting(boost, newdata = music.tst, type = 'class')
+boostmodel<-boostmodel1$class
+table_mat3 <- table(music.tst$genre, boostmodel)
+table_mat3
+```
+
+
+#Machine learning stuff- wrong name vector support stuff
+
+##SMOTE?
+
+```{r}
+library(DMwR)
+
+## Smote : Synthetic Minority Oversampling Technique To Handle Class Imbalancy In Binary Classification
+balanced.data <- SMOTE(genre ~., music, perc.over = 4800, k = 5, perc.under = 1000)
+
+as.data.frame(table(balanced.data$Class))
+
+```
+
