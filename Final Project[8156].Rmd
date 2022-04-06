@@ -1,0 +1,370 @@
+---
+title: "Final 518 Project"
+author: "Savannah Farney and Derek Brown"
+date: "3/30/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(readr)
+library(tidyverse)
+library(base)
+music<- read.csv("genres_v2.csv", header = TRUE)[,-c(22,21,20,16,15,14,13)]
+
+```
+## Individual vector analysis 
+
+```{r}
+summary(music)
+
+explordata <- function(data, i) {
+  #column.name <-enquo(column.name)
+  column.name<-as.character(colnames(music)[i])
+  plot<-ggplot(data = data, mapping = aes(x=data[,i])) +
+            geom_boxplot()  +
+            labs(x=column.name)
+  plot2<-ggplot(data = data, mapping = aes(x=data[,i])) +
+            geom_density()   +
+            labs(x = column.name)
+
+  print((plot))
+  print((plot2))
+  
+  a<- data.frame(mean = mean(data[,i]),
+                 range = range(data[,i]), 
+                 sd = sd(data[,i]))
+  print(a)
+  z<-i+1
+  
+  while(z<10) {
+      column.name2<-as.character(colnames(music)[z])
+
+    plot3<-ggplot(data = data, mapping = aes(x=data[,i], y= data[,z])) +
+           geom_point()   +
+           labs(x = column.name, y = column.name2)
+    
+    x<- cor(data[,i], data[,z])
+    print(plot3)
+    print(x)
+    z<-z+1
+  }
+
+}
+```
+
+## Danceability
+```{r}
+a<-1
+column.name<-as.character(colnames(music)[a])
+ggplot(data = music, mapping = aes(x=music[,a])) +
+  geom_boxplot()  +
+  labs(x=column.name, title = column.name)
+ggplot(data = music, mapping = aes(x=music[,a])) +
+  geom_density()   +
+  labs(x = column.name, title = column.name)
+b<- data.frame(mean = mean(music[,a]), 
+               median = median(music[,a]),
+               range = range(music[,a]), 
+               sd = sd(music[,a]))
+b
+```
+
+Danceablility is a numeric variable that ranges from 0.0651 to 0.988. It has an average value of 0.6393643 with a standard deviation of 0.1566171. According to the box plot, there might be some outlying values around 0.125. It looks like 25% of the observations are around .5 or less, the median value is 0.646, meaning 50% of the values are below this number. it also looks like 75% of the observations are around .75 or less. From the density plot, it looks like it is skewed to the left a little bit, and most of the observations occur between .5 and .8. With the top of the curve kind of flat, except for a little peak around 0.8.
+
+## Energy
+```{r}
+a <- 2
+column.name<-as.character(colnames(music)[a])
+ggplot(data = music, mapping = aes(x=music[,a])) +
+  geom_boxplot()  +
+  labs(x=column.name, title = column.name)
+ggplot(data = music, mapping = aes(x=music[,a])) +
+  geom_density()   +
+  labs(x = column.name, title = column.name)
+b<- data.frame(mean = mean(music[,a]), 
+               median = median(music[,a]),
+               range = range(music[,a]), 
+               sd = sd(music[,a]))
+b
+```
+
+Energy is a numeric variable that ranges from 0.000243 to 1. It has an average value of 0.7625156 with a standard deviation of 0.1838231 According to the box plot, there might be some outlying values less that 0.25. It looks like 25% of the observations are less than 0.632000, the median value is 0.803, meaning 50% of the values are below this number. It also looks like 75% of the observations occur before 0.923000. From the density plot, it looks like it is skewed to the left, and it almost looks like a linear line until around .9, where it peaks. It is unimodal.
+
+## Key
+Looks numerical but should be treated as a factor
+```{r}
+music$key <- factor(music$key)
+table(music$key)
+```
+
+Key is a numeric variable that ranges from 0 to 11. It has an average value of 5.37024 with a standard deviation of 3.666145. According to the box plot, it doesn't look like there are any outlying values. It looks like 25% of the observations are less than 1, the median value is 6, meaning 50% of the values are below this number. It also looks like 75% of the observations occur before 9. From the density plot, it looks like there are several peeks, with the larger one occuring towards 1. It also looks like there are not as many values that are 3.
+
+
+## Loudness
+```{r}
+a <- 4
+column.name<-as.character(colnames(music)[a])
+ggplot(data = music, mapping = aes(x=music[,a])) +
+  geom_boxplot()  +
+  labs(x=column.name, title = column.name)
+ggplot(data = music, mapping = aes(x=music[,a])) +
+  geom_density()   +
+  labs(x = column.name, title = column.name)
+b<- data.frame(mean = mean(music[,a]), 
+               median = median(music[,a]),
+               range = range(music[,a]), 
+               sd = sd(music[,a]))
+b
+```
+
+Loundness is a numeric variable that ranges from -33.357 to 3.148. It has an average value of -6.465442 with a standard deviation of 2.941165 According to the box plot, there might be some outlying values less that -13 or larger than 1. It looks like 25% of the observations are less than -8.161, the median value is -6.234, meaning 50% of the values are below this number. It also looks like 75% of the observations occur before -4.513. From the density plot, it looks like it is unimodal and skewed to the left, and it almost looks like a normal distribution that has a peak at -5.
+
+## Mode
+```{r}
+a <- 5
+column.name<-as.character(colnames(music)[a])
+ggplot(data = music, mapping = aes(x=music[,a])) +
+  geom_boxplot()  +
+  labs(x=column.name, title = column.name)
+ggplot(data = music, mapping = aes(x=music[,a])) +
+  geom_density()   +
+  labs(x = column.name, title = column.name)
+b<- data.frame(mean = mean(music[,a]), 
+               median = median(music[,a]),
+               range = range(music[,a]), 
+               sd = sd(music[,a]))
+b
+```
+
+Mode is a numeric variable that ranges from 0 to 1. It has an average value of 0.5494622 with a standard deviation of 0.4975534. According to the box plot, it looks like 25% of the observations are less than 0, the median value is 1, meaning 50% of the values are below this number. It also looks like 1 is the third quartile value, meaning 75% of the observations occur before 1. From the density plot, it looks like a U, meaning that all of the values are either close to 0 or close to 1 (more observations occur around 1).
+ 
+Speechiness
+```{r}
+a <- 6
+column.name<-as.character(colnames(music)[a])
+ggplot(data = music, mapping = aes(x=music[,a])) +
+  geom_boxplot()  +
+  labs(x=column.name, title = column.name)
+ggplot(data = music, mapping = aes(x=music[,a])) +
+  geom_density()   +
+  labs(x = column.name, title = column.name)
+b<- data.frame(mean = mean(music[,a]), 
+               median = median(music[,a]),
+               range = range(music[,a]), 
+               sd = sd(music[,a]))
+b
+```
+
+speechiness          
+Min.   :0.0227
+1st Qu.:0.0491
+Median :0.0755
+Mean   :0.1366
+3rd Qu.:0.1930
+
+## Acousticness
+```{r}
+a <- 7
+column.name<-as.character(colnames(music)[a])
+ggplot(data = music, mapping = aes(x=music[,a])) +
+  geom_boxplot()  +
+  labs(x=column.name, title = column.name)
+ggplot(data = music, mapping = aes(x=music[,a])) +
+  geom_density()   +
+  labs(x = column.name, title = column.name)
+b<- data.frame(mean = mean(music[,a]), 
+               median = median(music[,a]),
+               range = range(music[,a]), 
+               sd = sd(music[,a]))
+b
+```
+
+acousticness      
+Min.   :0.0000011  
+1st Qu.:0.0017300  
+Median :0.0164000  
+Mean   :0.0961605  
+3rd Qu.:0.1070000 
+
+## Instrumentalness
+```{r}
+a <- 7
+column.name<-as.character(colnames(music)[a])
+ggplot(data = music, mapping = aes(x=music[,a])) +
+  geom_boxplot()  +
+  labs(x=column.name, title = column.name)
+ggplot(data = music, mapping = aes(x=music[,a])) +
+  geom_density()   +
+  labs(x = column.name, title = column.name)
+b<- data.frame(mean = mean(music[,a]), 
+               median = median(music[,a]),
+               range = range(music[,a]), 
+               sd = sd(music[,a]))
+b
+```
+
+## Liveness
+```{r}
+a <- 9
+column.name<-as.character(colnames(music)[a])
+ggplot(data = music, mapping = aes(x=music[,a])) +
+  geom_boxplot()  +
+  labs(x=column.name, title = column.name)
+ggplot(data = music, mapping = aes(x=music[,a])) +
+  geom_density()   +
+  labs(x = column.name, title = column.name)
+b<- data.frame(mean = mean(music[,a]), 
+               median = median(music[,a]),
+               range = range(music[,a]), 
+               sd = sd(music[,a]))
+b
+```
+
+## Valence
+```{r}
+a <- 10
+column.name<-as.character(colnames(music)[a])
+ggplot(data = music, mapping = aes(x=music[,a])) +
+  geom_boxplot()  +
+  labs(x=column.name, title = column.name)
+ggplot(data = music, mapping = aes(x=music[,a])) +
+  geom_density()   +
+  labs(x = column.name, title = column.name)
+b<- data.frame(mean = mean(music[,a]), 
+               median = median(music[,a]),
+               range = range(music[,a]), 
+               sd = sd(music[,a]))
+b
+a<-a+1
+```
+
+## Tempo
+```{r}
+a <- 11
+column.name<-as.character(colnames(music)[a])
+ggplot(data = music, mapping = aes(x=music[,a])) +
+  geom_boxplot()  +
+  labs(x=column.name, title = column.name)
+ggplot(data = music, mapping = aes(x=music[,a])) +
+  geom_density()   +
+  labs(x = column.name, title = column.name)
+b<- data.frame(mean = mean(music[,a]), 
+               median = median(music[,a]),
+               range = range(music[,a]), 
+               sd = sd(music[,a]))
+b
+```
+
+## Type
+categorical.
+```{r}
+
+```
+
+## Duration_mn
+```{r}
+a <- 13
+column.name<-as.character(colnames(music)[a])
+ggplot(data = music, mapping = aes(x=music[,a])) +
+  geom_boxplot()  +
+  labs(x=column.name, title = column.name)
+ggplot(data = music, mapping = aes(x=music[,a])) +
+  geom_density()   +
+  labs(x = column.name, title = column.name)
+b<- data.frame(mean = mean(music[,a]), 
+               median = median(music[,a]),
+               range = range(music[,a]), 
+               sd = sd(music[,a]))
+b
+```
+
+## Time Signature
+```{r}
+table(music$time_signature)
+```
+
+## Genre
+```{r}
+table(music$genre)
+```
+
+# Response/Explanatory Variable Analysis
+
+## Danceability
+```{r danceabiliity}
+ggplot(data=music, aes(x=genre, danceability)) + geom_boxplot()
+tapply(music$danceability, music$genre, summary)
+```
+It appears that danceability will be a strong predictor for different genres. Genres like pop and rap have a very high danceability, but genres like trane and emo have very little which makes sense.
+
+## Energy
+```{r energy}
+ggplot(data=music, aes(x=genre, energy)) + geom_boxplot()
+tapply(music$danceability, music$genre, summary)
+```
+energy seems to split the variables into two categories. Those with high energy and those with medium energy. While this doesn't indicate any singular variable, it will be an effective measurement for predicting the genre in a tree setting since it divides the genres in two. 
+
+## Key
+```{r Key}
+prop.table(table(music$genre,music$key),margin=1)
+round(prop.table(table(music$genre,music$key),margin=1)*100 -100/12,digits=2)
+```
+
+## Loudness
+```{r Loudness}
+ggplot(data=music, aes(x=genre, loudness)) + geom_boxplot()
+tapply(music$loudness, music$genre, summary)
+```
+It would appear that loudness will be a good predictor of whether or not a song is part of the trap genre. 
+
+## Mode
+```{r Mode}
+prop.table(table(music$genre,music$mode),margin=1)
+round(prop.table(table(music$genre,music$mode),margin=1)*100 -100/2,digits=2)
+```
+
+## Speechiness
+
+```{r Speechiness}
+ggplot(data=music, aes(x=genre, speechiness)) + geom_boxplot()
+tapply(music$speechiness, music$genre, summary)
+```
+
+This makes a lot of sense since the genres that are more dependent on vocals came out to the top. I think this will also provide a very useful split in a tree context to filter out many of the variables when predicting.
+
+## Acousticness
+```{r Acousticness}
+ggplot(data=music, aes(x=genre, acousticness)) + geom_boxplot()
+tapply(music$acousticness, music$genre, summary)
+```
+
+## Instrumentalness
+```{r instrumentalness}
+ggplot(data=music, aes(x=genre, instrumentalness)) + geom_boxplot()
+tapply(music$instrumentalness, music$genre, summary)
+```
+
+## Liveness
+```{r liveness}
+ggplot(data=music, aes(x=genre, liveness)) + geom_boxplot()
+tapply(music$liveness, music$genre, summary)
+```
+
+## Valence
+```{r valence}
+ggplot(data=music, aes(x=genre, valence)) + geom_boxplot()
+tapply(music$valence, music$genre, summary)
+```
+
+## Tempo
+```{r tempo}
+ggplot(data=music, aes(x=genre, tempo)) + geom_boxplot()
+tapply(music$tempo, music$genre, summary)
+```
+
+## Duration
+```{r duration}
+ggplot(data=music, aes(x=genre, duration_ms)) + geom_boxplot()
+tapply(music$duration_ms, music$genre, summary)
+```
