@@ -195,7 +195,7 @@ table_mat
 ```
 
 ##Random Forests
-Random Forest
+Random Forest (This does work now!)
 
 ```{r}
 set.seed(2)
