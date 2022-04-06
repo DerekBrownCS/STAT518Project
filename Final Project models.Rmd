@@ -259,6 +259,9 @@ table_mat3
 
 #Machine learning stuff- wrong name vector support stuff
 
+#Princilple components
+#clustering stuff
+
 ##SMOTE?
 
 ```{r}
