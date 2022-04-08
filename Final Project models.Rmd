@@ -222,10 +222,12 @@ table_mat
 
 #Out-Of-Bag Error?
 using the observations that were not used in the bagging to test how the tree is doing
+
 ##Boosting
 Boosting
 ```{r}
 library(gbm)
+library(adabag)
 set.seed(2)
 ## Boosting for Classification
 music.tr$genre<-as.factor(music.tr$genre)
