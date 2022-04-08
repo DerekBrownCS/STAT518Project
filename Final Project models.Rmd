@@ -120,11 +120,12 @@ mean(music.tst$genre != est.5)
 
 ##LDA
 (https://multivariatestatsjl.readthedocs.io/en/latest/mclda.html)
+
 ```{r}
 library(MASS)
-length(unique(as.factor(music.tr$genre)))
-music.tr$genre
-lda <- lda(genre~., data=music.tr)
+
+lda <- lda(as.factor(genre)~., data=music.tr)
+lda
 table(music.tst$genre, predict(lda, newdata=music.tst)$class, dnn=c("True", "LDA"))
 mean(music.tst$genre != predict(lda,  newdata=music.tst)$class)
 ```
