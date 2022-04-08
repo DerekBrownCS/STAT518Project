@@ -180,8 +180,8 @@ tree:::print.tree(trMusic)
 plot(trMusic); text(trMusic, col='blue', pretty=TRUE, cex=.8)
 
 #how many nodes?
-cv.Movie <- cv.tree(trMusic)
-plot(cv.Movie)
+cv.Music <- cv.tree(trMusic)
+plot(cv.Music)
 
 #prune tree
 pr.tr <- prune.tree(trMusic, best=11)
@@ -217,7 +217,7 @@ Bagging
 ```{r}
 set.seed(2)
 ## Bagging 
-bag <- randomForest(as.factor(genre)~., data = spam.tr, mtry=14, importance = TRUE, proximity = TRUE)
+bag <- randomForest(as.factor(genre)~., data = music.tr, mtry=14, importance = TRUE, proximity = TRUE)
 
 importance(bag)
 varImpPlot(bag, cex=.65)
@@ -257,7 +257,41 @@ table_mat3
 ```
 
 
-#Machine learning stuff- wrong name vector support stuff
+#Support Vector Machine
+
+  ```{r}
+set.seed(1)
+
+s1 <- svm(genre~., data=music.tr, type='C', scale=TRUE)
+
+st <- tune(svm, as.factor(genre)~., data=music.tr,
+           ranges=list(cost=1:5, gamma=(1:5)/10))
+st$best.model
+summary(st$best.model)
+
+
+p.svm <- predict(st$best.model)
+table(music.tr$genre, p.svm, dnn=c("TRUE", "SVM"))
+
+p.svm.tst <- predict(st$best.model, newdata = music.tst)
+table(music.tst$genre, p.svm.tst, dnn=c("TRUE", "SVM"))
+mean(music.tst$genre != p.svm.tst)
+
+p.svm.tst2 <- predict(s1, newdata = music.tst)
+table(music.tst$genre, p.svm.tst2, dnn=c("TRUE", "SVM"))
+mean(music.tst$genre != p.svm.tst2)
+
+library (ROCR)
+#ROC Curve
+s2 <- svm(genre~., data=music.tr, type='C', 
+          scale=TRUE, decision.values = TRUE)
+
+p.svm.tst2 <- attributes (predict(s2, newdata = music.tst, decision.values = T))$decision.values
+pred <- prediction(p.svm.tst2, music.tst$genre)
+perf <- performance(pred, "tpr", "fpr")
+plot(perf, col='blue', cex.lab=1.5)
+```
+
 
 #Princilple components
 #clustering stuff
