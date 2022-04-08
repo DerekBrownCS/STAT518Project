@@ -120,12 +120,12 @@ mean(music.tst$genre != est.5)
 
 ##LDA
 (https://multivariatestatsjl.readthedocs.io/en/latest/mclda.html)
-
 ```{r}
 library(MASS)
 
 lda <- lda(as.factor(genre)~., data=music.tr)
 lda
+
 table(music.tst$genre, predict(lda, newdata=music.tst)$class, dnn=c("True", "LDA"))
 mean(music.tst$genre != predict(lda,  newdata=music.tst)$class)
 ```
@@ -138,18 +138,26 @@ table(music.tst$genre, predict(qda, newdata=music.tst, type='response')$class, d
 mean(music.tst$genre != predict(qda,  newdata=music.tst)$class)
 ```
 
-##K Nearest Neighbor
+##Nearest Neighbor
 ```{r}
 library(class)
 
-music.tr$genre <- as.numeric(as.integer(factor(music.tr$genre)))
-knn.cls<-knn(train = music.tr[, 1:13], test = music.tst[, 1:13], music.tr[, 14], k=16)
-table(music.tst$genre, knn.cls)
+knn.cls<-knn(train = music.tr[, 1:13], test = music.tst[, 1:13], music.tr[, 14], k=23)
+table(music.tst$genre, knn.cls, dnn=c("True", "KNN K=23"))
+mean(as.numeric(as.integer(factor(music.tst$genre))) != knn.cls)
+
+knn.cls<-knn(train = music.tr[, 1:13], test = music.tst[, 1:13], music.tr[, 14], k=17)
+table(music.tst$genre, knn.cls, dnn=c("True", "KNN K=17"))
+mean(as.numeric(as.integer(factor(music.tst$genre))) != knn.cls)
+
+
 knn.cls1<-knn(train = music.tr[, 1:13], test = music.tst[, 1:13], music.tr[, 14], k=1)
-knn.cls5<-knn(train = music.tr[, 1:13], test = music.tst[, 1:13], music.tr[, 14], k=5)
-table(music.tst$genre, knn.cls, dnn=c("True", "KNN K=3"))
 table(music.tst$genre, knn.cls1, dnn=c("True", "KNN K=1"))
+mean(as.numeric(as.integer(factor(music.tst$genre))) != knn.cls1)
+
+knn.cls5<-knn(train = music.tr[, 1:13], test = music.tst[, 1:13], music.tr[, 14], k=5)
 table(music.tst$genre, knn.cls5, dnn=c("True", "KNN K=5"))
+mean(as.numeric(as.integer(factor(music.tst$genre))) != knn.cls5)
 ```
 
 ##Naive Bayes
@@ -168,20 +176,18 @@ library(tree)
 trMusic <- tree(as.factor(genre)~., data=music, minsize = 1)
 tree:::print.tree(trMusic)
 plot(trMusic); text(trMusic, col='blue', pretty=TRUE, cex=.8)
-
 #how many nodes?
 cv.Music <- cv.tree(trMusic)
 plot(cv.Music)
-
 #prune tree
 pr.tr <- prune.tree(trMusic, best=11)
 plot(pr.tr); text(pr.tr, pretty=TRUE, col='red', cex=.8)
 tree:::print.tree(pr.tr)
 #look at doc to help get all of the genres
-
 pb <- predict(pr.tr, newdata = music.tst, type = 'class')
 table_mat <- table(music.tst$genre, pb)
 table_mat
+mean(music.tst$genre != pb)
 ```
 
 ##Random Forests
@@ -191,27 +197,24 @@ Random Forest (This does work now!)
 set.seed(2)
 library(randomForest)
 ## Random Forest
-rf.music<- randomForest((genre)~., data=music.tr, mtry=4)
-
+rf.music<- randomForest(as.factor(genre)~., data=music.tr, mtry=4)
 importance(rf.music)
 varImpPlot(rf.music, cex = .65)
-
 ranforest <- predict(rf.music, newdata = music.tst, type = 'class')
 table_mat2 <- table(music.tst$genre, ranforest)
 table_mat2
+mean(music.tst$genre != ranforest)
 #find better way to print?
 ```
 
 ##Bagging
 Bagging
-```{r}
+```{r Bagging}
 set.seed(2)
 ## Bagging 
-bag <- randomForest(as.factor(genre)~., data = music.tr, mtry=14, importance = TRUE, proximity = TRUE)
-
+bag <- randomForest(as.factor(genre)~., data = music.tr, mtry=13, importance = TRUE, proximity = TRUE)
 importance(bag)
 varImpPlot(bag, cex=.65)
-
 bagging <- predict(bag, newdata = music.tst, type = 'class')
 table_mat <- table(music.tst$genre, bagging)
 table_mat
@@ -224,22 +227,18 @@ Boosting
 ```{r}
 library(gbm)
 set.seed(2)
-
 ## Boosting for Classification
 music.tr$genre<-as.factor(music.tr$genre)
 boost <- boosting(genre~., data=music.tr, mfinal=20)
-summary.gbm(boost)
+boost
 boost$importance
-
 # Compare the Cross-Validation Error for different # of trees
 cv.err <- gbm(genre~., data=music.tr, distribution = 'gaussian', 
               n.tree = 500, cv.folds = 5)$cv.error
 plot(cv.err, type='l', xlab="Number of trees", ylab="CV error")
-
 # Plot the classification tree
 tr1 <- boost$trees[[1]]
 plot(tr1); text(tr1, pretty=TRUE, col='red', cex=.8)
-
 boostmodel1 <- predict.boosting(boost, newdata = music.tst, type = 'class')
 boostmodel<-boostmodel1$class
 table_mat3 <- table(music.tst$genre, boostmodel)
@@ -249,33 +248,28 @@ table_mat3
 
 #Support Vector Machine
 
-  ```{r}
+```{r}
 set.seed(1)
-
-s1 <- svm(genre~., data=music.tr, type='C', scale=TRUE)
-
+library(ISLR)
+library(e1071)
+library(ROCR)
+s1 <- svm(as.factor(genre)~., data=music.tr, type='C', scale=TRUE)
 st <- tune(svm, as.factor(genre)~., data=music.tr,
            ranges=list(cost=1:5, gamma=(1:5)/10))
 st$best.model
 summary(st$best.model)
-
-
 p.svm <- predict(st$best.model)
 table(music.tr$genre, p.svm, dnn=c("TRUE", "SVM"))
-
 p.svm.tst <- predict(st$best.model, newdata = music.tst)
 table(music.tst$genre, p.svm.tst, dnn=c("TRUE", "SVM"))
 mean(music.tst$genre != p.svm.tst)
-
 p.svm.tst2 <- predict(s1, newdata = music.tst)
 table(music.tst$genre, p.svm.tst2, dnn=c("TRUE", "SVM"))
 mean(music.tst$genre != p.svm.tst2)
-
 library (ROCR)
 #ROC Curve
 s2 <- svm(genre~., data=music.tr, type='C', 
           scale=TRUE, decision.values = TRUE)
-
 p.svm.tst2 <- attributes (predict(s2, newdata = music.tst, decision.values = T))$decision.values
 pred <- prediction(p.svm.tst2, music.tst$genre)
 perf <- performance(pred, "tpr", "fpr")
