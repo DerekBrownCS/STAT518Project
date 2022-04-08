@@ -138,26 +138,15 @@ table(music.tst$genre, predict(qda, newdata=music.tst, type='response')$class, d
 mean(music.tst$genre != predict(qda,  newdata=music.tst)$class)
 ```
 
-##Nearest Neighbor
+##K Nearest Neighbor
 ```{r}
 library(class)
-#change 58 to column for genre
-music.tr2 <- music.tr %>%
-  select(-genre)
-music.tst2 <- music.tst %>%
-  select(-genre)
 
-music.tr$genre<-as.character(music.tr$genre)
-music.tr$genre<-as.factor(music.tr$genre)
-music.tr$genre<-as.numeric(music.tr$genre)
-
-typeof(music.tr$genre)
-typeof(music)
-knn.cls<-knn(train = music.tr[,-15], test = music.tst[,-15], music.tr[, 15], k=16)
+music.tr$genre <- as.numeric(as.integer(factor(music.tr$genre)))
+knn.cls<-knn(train = music.tr[, 1:13], test = music.tst[, 1:13], music.tr[, 14], k=16)
 table(music.tst$genre, knn.cls)
-
-knn.cls1<-knn(train = music.tr2, test = music.tst2, cl=music.tr$genre, k=1)
-knn.cls5<-knn(train = music.tr2, test = music.tst2, cl=music.tr$genre, k=5)
+knn.cls1<-knn(train = music.tr[, 1:13], test = music.tst[, 1:13], music.tr[, 14], k=1)
+knn.cls5<-knn(train = music.tr[, 1:13], test = music.tst[, 1:13], music.tr[, 14], k=5)
 table(music.tst$genre, knn.cls, dnn=c("True", "KNN K=3"))
 table(music.tst$genre, knn.cls1, dnn=c("True", "KNN K=1"))
 table(music.tst$genre, knn.cls5, dnn=c("True", "KNN K=5"))
