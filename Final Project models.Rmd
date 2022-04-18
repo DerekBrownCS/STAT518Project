@@ -12,7 +12,7 @@ library(tidyverse)
 library(ggplot2)
 library(base)
 #music<- read.csv("genres_v2.csv", header = TRUE)
-music<- read.csv("~/Documents/STAT 518/STAT 518/genres_v2.csv", header = TRUE) 
+music<- read.csv("~/Github/STAT518Project/genres_v2.csv", header = TRUE) 
 
 #count unique values
 df<-sapply(lapply(music, unique), length)
@@ -21,9 +21,12 @@ df
 as.data.frame(colSums(is.na(music)))
 as.data.frame(colSums(!is.na(music)))
 
-music<-music[,-c(22,21,20,16,15,14,13)]
+music<-music[,-c(22,21,20,16,15,14,13,12)]
 
 music<-na.omit(music)
+music$key <- as.factor(music$key)
+music$mode <- as.factor(music$mode)
+music$time_signature <- as.factor(music$time_signature)
 
 ```
 
@@ -35,17 +38,17 @@ music<-na.omit(music)
 set.seed(1234)
 #idx <- read.table('music.traintest')
 #get random numbers for idx.tr
-n<-nrow(music)
-n
+n<-nrow(music); n
+
 idx.tr <- sample(n, .7*n) #idx$V1 == 0
 music.tr <- music[idx.tr,]
 music.tst <- music[-idx.tr,]
 
-n<-nrow(music.tst)
-n
+n<-nrow(music.tst); n
+
 idx.tr <- sample(n, (2/3)*n) #idx$V1 == 0
-music.t3 <- music[idx.tr,]
-music.tst <- music[-idx.tr,]
+music.t3 <- music.tst[-idx.tr,]
+music.tst <- music.tst[idx.tr,]
 
 summary(music)
 ggplot(data=music, mapping = aes(x=genre)) +
@@ -83,6 +86,17 @@ library(leaps)
 ##Logistical regression / multinomial regression
 (https://it.unt.edu/sites/default/files/mlr_jds_aug2011.pdf)
 
+I ended up deciding to implement this package. Code doesn't run with type included. 
+
+```{r Logistical_Regression}
+library(nnet)
+
+genre <- as.factor(music.tr$genre)
+multi <- multinom(genre~., data = music.tr)
+#summary(multi) This command takes a really long time to run for some reason. 
+table(as.factor(music.tst$genre),as.factor(predict(multi, newdata=music.tst)),dnn=c('TRUE', 'Logistic'))
+round(table(as.factor(music.tst$genre),as.factor(predict(multi, newdata=music.tst)),dnn=c('TRUE', 'Logistic'))*100/nrow(music.tst),2)
+```
 
 ```{r}
 #figure out how to do this for more than one category
@@ -279,7 +293,7 @@ plot(perf, col='blue', cex.lab=1.5)
 ```
 
 
-#Princilple components
+#Principle components
 #clustering stuff
 
 ##SMOTE?
