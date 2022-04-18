@@ -21,7 +21,7 @@ df
 as.data.frame(colSums(is.na(music)))
 as.data.frame(colSums(!is.na(music)))
 
-music<-music[,-c(22,21,20,16,15,14,13,12)]
+music<-music[,-c(22,21,20,16,15,14,13, 12)]
 
 music<-na.omit(music)
 music$key <- as.factor(music$key)
