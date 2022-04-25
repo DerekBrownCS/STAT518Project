@@ -1,7 +1,7 @@
 ---
 title: "Final Project models"
 author: "Savannah Farney"
-date: "4/5/2022"
+date: "4/24/2022"
 output: html_document
 ---
 
@@ -100,33 +100,33 @@ round(table(as.factor(music.tst$genre),as.factor(predict(multi, newdata=music.ts
 
 ```{r}
 #figure out how to do this for more than one category
-library(mlogit)
-mdata<- mlogit.data(music, varying = NULL, choice="genre", shape = "wide")
-model.1 <- mlogit(genre~., data = mdata, reflevel = "1")
+#library(mlogit)
+#mdata<- mlogit.data(music, varying = NULL, choice="genre", shape = "wide")
+#model.1 <- mlogit(genre~., data = mdata, reflevel = "1")
 #do five times, look at largest
 
 
 #QDA looking
-fit <- glmnet(x, y, family = "multinomial", type.multinomial = "grouped") plot(fit, xvar = "lambda", label = TRUE, type.coef = "2norm")
-cvfit <- cv.glmnet(x, y, family = "multinomial", type.multinomial = "grouped") plot(cvfit)
-predict(cvfit, newx = x[1:10,], s = "lambda.min", type = "class")
+#fit <- glmnet(x, y, family = "multinomial", type.multinomial = "grouped") plot(fit, xvar = "lambda", label = TRUE, type.coef = "2norm")
+#cvfit <- cv.glmnet(x, y, family = "multinomial", type.multinomial = "grouped") plot(cvfit)
+#predict(cvfit, newx = x[1:10,], s = "lambda.min", type = "class")
 ```
 
 ```{r}
 #two categories only!!! Will not work!!!!
-lgr <- glm(genre~., data=music.tr, family = binomial)
-lgr.step <- step(lgr, trace=0)
+#lgr <- glm(genre~., data=music.tr, family = binomial)
+#lgr.step <- step(lgr, trace=0)
 #summary(lgr)
-summary(lgr.step)
+#summary(lgr.step)
 
-prob5 <-predict(lgr, newdata=music.tst, type='response')
-est.55 <- ifelse(prob5>0.5, 1, 0)
-table(music.tst$genre, est.55, dnn=c('TRUE', 'Logistic'))
+#prob5 <-predict(lgr, newdata=music.tst, type='response')
+#est.55 <- ifelse(prob5>0.5, 1, 0)
+#table(music.tst$genre, est.55, dnn=c('TRUE', 'Logistic'))
 
-prob <- predict(lgr.step, newdata=music.tst, type='response')
-est.5 <- ifelse(prob>0.5, 1, 0)
-table(music.tst$genre, est.5, dnn=c('TRUE', 'Logistic'))
-mean(music.tst$genre != est.5)
+#prob <- predict(lgr.step, newdata=music.tst, type='response')
+#est.5 <- ifelse(prob>0.5, 1, 0)
+#table(music.tst$genre, est.5, dnn=c('TRUE', 'Logistic'))
+#mean(music.tst$genre != est.5)
 ```
 
 ##Maximum likelihood
@@ -147,7 +147,8 @@ mean(music.tst$genre != predict(lda,  newdata=music.tst)$class)
 ##QDA
 (https://rpubs.com/aaronsc32/qda-several-groups)
 ```{r}
-qda <- qda(genre~., data=music.tr)
+#QDA is only designed for working with numerical predictors, so the three factor predictors must be omitted.
+qda <- qda(genre~.-key-mode-time_signature, data=music.tr)
 table(music.tst$genre, predict(qda, newdata=music.tst, type='response')$class, dnn=c("True", "QDA"))
 mean(music.tst$genre != predict(qda,  newdata=music.tst)$class)
 ```
